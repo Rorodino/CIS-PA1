@@ -6,6 +6,10 @@ This module implements the distortion calibration algorithm to compute
 expected values for EM tracker readings, accounting for systematic distortions.
 
 Authors: Rohit Satisha and Sahana Raja
+
+LIBRARIES USED:
+- NumPy (https://numpy.org/): For numerical computations and error metrics
+  Citation: Harris, C.R., Millman, K.J., van der Walt, S.J. et al. Array programming with NumPy. Nature 585, 357–362 (2020). https://doi.org/10.1038/s41586-020-2649-2
 """
 
 import numpy as np

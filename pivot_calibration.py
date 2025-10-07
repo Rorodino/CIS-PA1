@@ -7,6 +7,10 @@ tracking systems, which are used to determine the position of a pivot point
 relative to the tracking markers.
 
 Authors: Rohit Satisha and Sahana Raja
+
+LIBRARIES USED:
+- NumPy (https://numpy.org/): For least-squares solving and linear algebra operations
+  Citation: Harris, C.R., Millman, K.J., van der Walt, S.J. et al. Array programming with NumPy. Nature 585, 357–362 (2020). https://doi.org/10.1038/s41586-020-2649-2
 """
 
 import numpy as np

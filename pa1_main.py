@@ -11,6 +11,12 @@ This script provides access to the solutions for problems 4a, 4b, 4c, 4d, 5, and
 - 6: Optical pivot calibration
 
 Authors: Rohit Satisha and Sahana Raja
+
+LIBRARIES USED:
+- Click (https://click.palletsprojects.com/): For command-line interface
+  Citation: Pallet Projects. Click: Python composable command line interface toolkit. https://click.palletsprojects.com/
+- NumPy (https://numpy.org/): For numerical computations
+  Citation: Harris, C.R., Millman, K.J., van der Walt, S.J. et al. Array programming with NumPy. Nature 585, 357–362 (2020). https://doi.org/10.1038/s41586-020-2649-2
 """
 
 import click

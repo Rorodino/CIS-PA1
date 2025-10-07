@@ -6,6 +6,10 @@ This module provides 3D mathematical operations for points, rotations,
 and frame transformations required for electromagnetic tracking system calibration.
 
 Authors: Rohit Satisha and Sahana Raja
+
+LIBRARIES USED:
+- NumPy (https://numpy.org/): For basic linear algebra operations (SVD, matrix operations)
+  Citation: Harris, C.R., Millman, K.J., van der Walt, S.J. et al. Array programming with NumPy. Nature 585, 357–362 (2020). https://doi.org/10.1038/s41586-020-2649-2
 """
 
 import numpy as np

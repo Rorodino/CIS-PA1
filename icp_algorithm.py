@@ -6,6 +6,13 @@ This module implements the ICP algorithm for finding the optimal rotation and tr
 between two 3D point clouds.
 
 Authors: Rohit Satisha and Sahana Raja
+
+LIBRARIES USED:
+- NumPy (https://numpy.org/): For SVD computation and linear algebra operations
+  Citation: Harris, C.R., Millman, K.J., van der Walt, S.J. et al. Array programming with NumPy. Nature 585, 357–362 (2020). https://doi.org/10.1038/s41586-020-2649-2
+
+ALGORITHM REFERENCE:
+- Besl, P.J. & McKay, N.D. (1992). A method for registration of 3-D shapes. IEEE Transactions on Pattern Analysis and Machine Intelligence, 14(2), 239-256.
 """
 
 import numpy as np
