@@ -36,9 +36,10 @@ def em_pivot_calibration(empivot_data: EMPivotData) -> PivotCalibrationResult:
     """
     Perform EM pivot calibration.
     
-    The EM pivot calibration determines the position of the pivot point in the EM tracker
+    The EM pivot calibration determnies the position of the pivot point in the EM tracker
     coordinate system. The pivot point is the point that remains stationary as the
-    tracked object rotates around it.
+    tracked object rotates around it during the claibration. In most cases it is he tip
+    of teh device we are trying to calibrate.
     
     Algorithm:
     1. For each frame, we have G points (EM markers in EM tracker frame) and
