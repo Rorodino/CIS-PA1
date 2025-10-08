@@ -1,7 +1,7 @@
 CIS PA1 - Computer Integrated Surgery Programming Assignment 1
 ================================================================
 
-Authors: Rohit Satisha and Sahana Raja
+Authors: Rohit Satish and Sahana Raja
 
 This implementation provides a complete solution for CIS PA1, including:
 1. 3D Cartesian math package for points, rotations, and frame transformations
