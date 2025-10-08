@@ -59,39 +59,39 @@ class Point3D:
     def norm(self) -> float:
         return math.sqrt(self.x**2 + self.y**2 + self.z**2)
 
-  
+    # Returns normalized version of the vector which means the final vector is a unit vector
     def normalize(self) -> 'Point3D':
-        """Return normalized version of the vector."""
         n = self.norm()
         if n == 0:
             return Point3D(0, 0, 0)
         return Point3D(self.x/n, self.y/n, self.z/n)
     
+    # Converts a Point3D to numpy array
     def to_array(self) -> np.ndarray:
-        """Convert to numpy array."""
         return np.array([self.x, self.y, self.z])
     
+    # Create Point3D from numpy array.
     @classmethod
     def from_array(cls, arr: np.ndarray) -> 'Point3D':
-        """Create Point3D from numpy array."""
+        
         return cls(arr[0], arr[1], arr[2])
     
+    # toString method 
     def __repr__(self) -> str:
         return f"Point3D({self.x:.3f}, {self.y:.3f}, {self.z:.3f})"
 
-
+#3D Rotation class with various rotation representations.
 class Rotation3D:
-    """3D Rotation class with various rotation representations."""
-    
     def __init__(self, matrix: Optional[np.ndarray] = None):
         if matrix is None:
-            self.matrix = np.eye(3)
+            self.matrix = np.eye(3) # Initializes as identity matrix if matrix not given
         else:
             self.matrix = matrix.copy()
     
+    #Create rotation from axis-angle representation using Rodrigues' formula.
     @classmethod
     def from_axis_angle(cls, axis: Point3D, angle: float) -> 'Rotation3D':
-        """Create rotation from axis-angle representation using Rodrigues' formula."""
+        
         axis = axis.normalize()
         cos_angle = math.cos(angle)
         sin_angle = math.sin(angle)
@@ -107,10 +107,10 @@ class Rotation3D:
         R = np.eye(3) + sin_angle * K + one_minus_cos * np.dot(K, K)
         return cls(R)
     
+    #Create rotation from Euler angles
     @classmethod
     def from_euler_angles(cls, alpha: float, beta: float, gamma: float, 
                          order: str = 'xyz') -> 'Rotation3D':
-        """Create rotation from Euler angles."""
         Rx = cls._rotation_x(alpha)
         Ry = cls._rotation_y(beta)
         Rz = cls._rotation_z(gamma)
@@ -124,9 +124,10 @@ class Rotation3D:
         
         return cls(R)
     
+    #Create rotation from quaternion (w, x, y, z)
     @classmethod
     def from_quaternion(cls, q0: float, q1: float, q2: float, q3: float) -> 'Rotation3D':
-        """Create rotation from quaternion (w, x, y, z)."""
+        
         # Normalize quaternion
         norm = math.sqrt(q0**2 + q1**2 + q2**2 + q3**2)
         q0, q1, q2, q3 = q0/norm, q1/norm, q2/norm, q3/norm
@@ -140,9 +141,9 @@ class Rotation3D:
         
         return cls(R)
     
+    #Rotation matrix about x-axis
     @staticmethod
     def _rotation_x(angle: float) -> np.ndarray:
-        """Rotation matrix about x-axis."""
         c, s = math.cos(angle), math.sin(angle)
         return np.array([
             [1, 0, 0],
@@ -150,9 +151,10 @@ class Rotation3D:
             [0, s, c]
         ])
     
+    #Rotation matrix about y-axis
     @staticmethod
     def _rotation_y(angle: float) -> np.ndarray:
-        """Rotation matrix about y-axis."""
+
         c, s = math.cos(angle), math.sin(angle)
         return np.array([
             [c, 0, s],
@@ -160,9 +162,9 @@ class Rotation3D:
             [-s, 0, c]
         ])
     
+     #Rotation matrix about z-axis
     @staticmethod
     def _rotation_z(angle: float) -> np.ndarray:
-        """Rotation matrix about z-axis."""
         c, s = math.cos(angle), math.sin(angle)
         return np.array([
             [c, -s, 0],
@@ -170,26 +172,27 @@ class Rotation3D:
             [0, 0, 1]
         ])
     
+    # Applies Rotation to a 3D Point so in effect the Rotation class acts upon the Point3D class
     def apply(self, point: Point3D) -> Point3D:
-        """Apply rotation to a 3D point."""
         p_array = point.to_array()
         rotated = np.dot(self.matrix, p_array)
         return Point3D.from_array(rotated)
     
+    # Applies Inverse Rotation (transpose of rotation matrix)
     def inverse(self) -> 'Rotation3D':
-        """Get inverse rotation (transpose of rotation matrix)."""
         return Rotation3D(self.matrix.T)
     
+    # Compose this rotation with another rotation. Note that this is particularly useful for kinematic chains
     def compose(self, other: 'Rotation3D') -> 'Rotation3D':
-        """Compose this rotation with another rotation."""
         return Rotation3D(np.dot(self.matrix, other.matrix))
     
+    #Get determinant of rotation matrix (should be +1). If negative that indicates a reflection is occurring
     def determinant(self) -> float:
-        """Get determinant of rotation matrix (should be +1)."""
         return np.linalg.det(self.matrix)
     
+    #Convert rotation matrix to axis-angle representation
     def to_axis_angle(self) -> Tuple[Point3D, float]:
-        """Convert rotation matrix to axis-angle representation."""
+        
         # Extract axis and angle from rotation matrix
         trace = np.trace(self.matrix)
         angle = math.acos(max(-1, min(1, (trace - 1) / 2)))
@@ -207,6 +210,7 @@ class Rotation3D:
         
         return axis, angle
     
+    # toString
     def __repr__(self) -> str:
         return f"Rotation3D(\n{self.matrix}\n)"
 
