@@ -214,22 +214,21 @@ class Rotation3D:
     def __repr__(self) -> str:
         return f"Rotation3D(\n{self.matrix}\n)"
 
-
+#3D Frame transformation class combining rotation and translation
 class Frame3D:
-    """3D Frame transformation class combining rotation and translation."""
     
     def __init__(self, rotation: Rotation3D = None, translation: Point3D = None):
         self.rotation = rotation if rotation is not None else Rotation3D()
         self.translation = translation if translation is not None else Point3D()
     
+    # Create identity frame transformation
     @classmethod
     def identity(cls) -> 'Frame3D':
-        """Create identity frame transformation."""
         return cls()
     
+    # Create frame from 4x4 homogeneous transformation matrix
     @classmethod
     def from_matrix(cls, matrix: np.ndarray) -> 'Frame3D':
-        """Create frame from 4x4 homogeneous transformation matrix."""
         if matrix.shape != (4, 4):
             raise ValueError("Matrix must be 4x4")
         
@@ -237,36 +236,36 @@ class Frame3D:
         translation = Point3D(matrix[0, 3], matrix[1, 3], matrix[2, 3])
         return cls(rotation, translation)
     
+    # Apply frame transformation to a 3D point
     def apply(self, point: Point3D) -> Point3D:
-        """Apply frame transformation to a 3D point."""
         rotated = self.rotation.apply(point)
         return rotated + self.translation
     
+    # Get inverse frame transformation
     def inverse(self) -> 'Frame3D':
-        """Get inverse frame transformation."""
         inv_rotation = self.rotation.inverse()
         inv_translation = inv_rotation.apply(Point3D() - self.translation)
         return Frame3D(inv_rotation, inv_translation)
     
+    # Compose this frame with another frame
     def compose(self, other: 'Frame3D') -> 'Frame3D':
-        """Compose this frame with another frame."""
         new_rotation = self.rotation.compose(other.rotation)
         new_translation = self.rotation.apply(other.translation) + self.translation
         return Frame3D(new_rotation, new_translation)
     
+    # Convert to 4x4 homogeneous transformation matrix
     def to_matrix(self) -> np.ndarray:
-        """Convert to 4x4 homogeneous transformation matrix."""
         matrix = np.eye(4)
         matrix[:3, :3] = self.rotation.matrix
         matrix[:3, 3] = [self.translation.x, self.translation.y, self.translation.z]
         return matrix
     
+    # toString
     def __repr__(self) -> str:
         return f"Frame3D(R={self.rotation}, t={self.translation})"
 
-
+#Compute centroid of a list of 3D points
 def compute_centroid(points: List[Point3D]) -> Point3D:
-    """Compute centroid of a list of 3D points."""
     if not points:
         return Point3D()
     
@@ -277,9 +276,8 @@ def compute_centroid(points: List[Point3D]) -> Point3D:
     
     return Point3D(sum_x/n, sum_y/n, sum_z/n)
 
-
+#Compute covariance matrix for point set registration
 def compute_covariance_matrix(points_a: List[Point3D], points_b: List[Point3D]) -> np.ndarray:
-    """Compute covariance matrix for point set registration."""
     if len(points_a) != len(points_b):
         raise ValueError("Point sets must have same length")
     
@@ -293,9 +291,8 @@ def compute_covariance_matrix(points_a: List[Point3D], points_b: List[Point3D]) 
     
     return H
 
-
+#Create skew-symmetric matrix from 3D point
 def skew_symmetric_matrix(point: Point3D) -> np.ndarray:
-    """Create skew-symmetric matrix from 3D point."""
     return np.array([
         [0, -point.z, point.y],
         [point.z, 0, -point.x],
