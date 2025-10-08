@@ -1,11 +1,10 @@
 """
 CIS PA1 - Iterated Closest Point (ICP) Algorithm
 3D Point Set Registration Algorithm
+Authors: Rohit Satish and Sahana Raja
 
 This module implements the ICP algorithm for finding the optimal rotation and translation
 between two 3D point clouds.
-
-Authors: Rohit Satisha and Sahana Raja
 
 LIBRARIES USED:
 - NumPy (https://numpy.org/): For SVD computation and linear algebra operations
