@@ -1,11 +1,14 @@
 """
 CIS PA1 - 3D Cartesian Math Package
-Computer Integrated Surgery Programming Assignment 1
+Authors: Rohit Satish and Sahana Raja
 
-This module provides 3D mathematical operations for points, rotations, 
-and frame transformations required for electromagnetic tracking system calibration.
 
-Authors: Rohit Satisha and Sahana Raja
+This module provides 3D mathematical operations for:
+  - Points 
+  - Rotations 
+  - Frame transformations 
+These are all required for electromagnetic tracking system calibration.
+
 
 LIBRARIES USED:
 - NumPy (https://numpy.org/): For basic linear algebra operations (SVD, matrix operations)
@@ -16,43 +19,47 @@ import numpy as np
 from typing import Tuple, List, Optional
 import math
 
-
+#Defines the attributes of a 3D point alogn with result of basic 3D operations
 class Point3D:
-    """3D Point class with basic vector operations."""
-    
+
+    # 3D point initialization that essentially says the object or self has an x,y, and z attributable to itself
     def __init__(self, x: float = 0.0, y: float = 0.0, z: float = 0.0):
         self.x = x
         self.y = y
         self.z = z
-    
+
+    # Function that is known to return another Point3D that adds two Point3D's together
     def __add__(self, other: 'Point3D') -> 'Point3D':
         return Point3D(self.x + other.x, self.y + other.y, self.z + other.z)
-    
+
+    # Function that is known to return another Point3D that subtracts two Point3D's
     def __sub__(self, other: 'Point3D') -> 'Point3D':
         return Point3D(self.x - other.x, self.y - other.y, self.z - other.z)
-    
+
+    # Function that multiplies a Point3D by a specified scalar
     def __mul__(self, scalar: float) -> 'Point3D':
         return Point3D(self.x * scalar, self.y * scalar, self.z * scalar)
-    
+      
+    # Handles the case of the scalar being on the left side of the vector
     def __rmul__(self, scalar: float) -> 'Point3D':
         return self.__mul__(scalar)
-    
+
+    # Dot Product of two Point3D's
     def dot(self, other: 'Point3D') -> float:
-        """Dot product of two 3D points."""
         return self.x * other.x + self.y * other.y + self.z * other.z
-    
+
+    # Cross Product of two Point3D's
     def cross(self, other: 'Point3D') -> 'Point3D':
-        """Cross product of two 3D points."""
         return Point3D(
             self.y * other.z - self.z * other.y,
             self.z * other.x - self.x * other.z,
             self.x * other.y - self.y * other.x
         )
-    
+    #Euclidean norm (magnitude) of the vector
     def norm(self) -> float:
-        """Euclidean norm (magnitude) of the vector."""
         return math.sqrt(self.x**2 + self.y**2 + self.z**2)
-    
+
+  
     def normalize(self) -> 'Point3D':
         """Return normalized version of the vector."""
         n = self.norm()
