@@ -199,14 +199,16 @@ class Rotation3D:
             None: This initializer configures the rotation in place.
         """
         if matrix is None:
-            self.matrix = np.eye(3) # Initializes as identity matrix if matrix not given
-        if matrix is not None:
-            if matrix.shape != (3, 3):
-                raise ValueError("Rotation matrix must be 3x3.")
-            if not np.allclose(np.dot(matrix.T, matrix), np.eye(3), atol=1e-6):
-                raise ValueError("Rotation matrix must be orthonormal.")
+            self.matrix = np.eye(3)  # Initializes as identity matrix if matrix not given
         else:
-            self.matrix = matrix.copy()
+            candidate = np.asarray(matrix, dtype=float)
+            if candidate.shape != (3, 3):
+                raise ValueError("Rotation matrix must be 3x3.")
+            if not np.allclose(candidate.T @ candidate, np.eye(3), atol=1e-6):
+                raise ValueError("Rotation matrix must be orthonormal.")
+            if not math.isclose(np.linalg.det(candidate), 1.0, abs_tol=1e-6):
+                raise ValueError("Rotation matrix must have determinant +1.")
+            self.matrix = candidate.copy()
     
     @classmethod
     def from_axis_angle(cls, axis: Point3D, angle: float) -> 'Rotation3D':
