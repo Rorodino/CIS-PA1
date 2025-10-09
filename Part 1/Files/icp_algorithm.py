@@ -170,22 +170,25 @@ def icp_algorithm(source_points: List[Point3D],
     prev_error = float('inf')
     
     for iteration in range(max_iterations):
-        # Find closest point correspondences
-        correspondences = find_closest_points(source_points, target_points)
+        # Apply current transformation to source points
+        transformed_points = [rotation.apply(p) + translation for p in source_points]
+        
+        # Find closest point correspondences using transformed points
+        correspondences = find_closest_points(transformed_points, target_points)
         
         # Create corresponding target points
         corresponding_targets = [target_points[i] for i in correspondences]
         
-        # Compute optimal rotation and translation
-        new_rotation, new_translation = compute_optimal_rotation_translation(
-            source_points, corresponding_targets
+        # Compute incremental optimal rotation and translation
+        delta_rotation, delta_translation = compute_optimal_rotation_translation(
+            transformed_points, corresponding_targets
         )
         
-        # Update transformation
-        rotation = new_rotation
-        translation = new_translation
+        # Accumulate transformation
+        rotation = delta_rotation.compose(rotation)
+        translation = delta_rotation.apply(translation) + delta_translation
         
-        # Compute registration error
+        # Compute registration error with updated transformation
         error = compute_registration_error(source_points, corresponding_targets, 
                                          rotation, translation)
         

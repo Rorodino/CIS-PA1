@@ -14,6 +14,7 @@ LIBRARIES USED:
 """
 
 import numpy as np
+import math
 from typing import List, Tuple, Optional
 from cis_math import Point3D, Rotation3D, Frame3D, compute_centroid
 from icp_algorithm import icp_with_known_correspondences
@@ -23,13 +24,57 @@ from data_readers import EMPivotData, OptPivotData
 class PivotCalibrationResult:
     """Result container for pivot calibration."""
     
-    def __init__(self, pivot_point: Point3D, error: float, converged: bool):
+    def __init__(self, pivot_point: Point3D, error: float, converged: bool,
+                 tip_vector: Optional[Point3D] = None):
         self.pivot_point = pivot_point
         self.error = error
         self.converged = converged
+        self.tip_vector = tip_vector
     
     def __repr__(self) -> str:
-        return f"PivotCalibrationResult(pivot={self.pivot_point}, error={self.error:.6f}, converged={self.converged})"
+        return (
+            "PivotCalibrationResult("
+            f"pivot={self.pivot_point}, "
+            f"error={self.error:.6f}, "
+            f"converged={self.converged}, "
+            f"tip={self.tip_vector})"
+        )
+
+
+def _solve_pivot_from_frames(rotations: List[Rotation3D],
+                             translations: List[Point3D]) -> Tuple[Point3D, Point3D, float]:
+    """
+    Solve for the probe tip (in the probe frame) and pivot point (tracker frame)
+    given a collection of rigid-body poses.
+    """
+    if len(rotations) != len(translations):
+        raise ValueError("Rotation and translation counts must match")
+    if len(rotations) < 3:
+        raise ValueError("Need at least three frames for a stable pivot solution")
+    
+    A_blocks = []
+    b_blocks = []
+    
+    for R, t in zip(rotations, translations):
+        R_mat = R.matrix
+        t_vec = t.to_array()
+        A_blocks.append(np.hstack([R_mat, -np.eye(3)]))
+        b_blocks.append(-t_vec)
+    
+    A = np.vstack(A_blocks)
+    b = np.hstack(b_blocks)
+    
+    solution, _, _, _ = np.linalg.lstsq(A, b, rcond=None)
+    tip_vector = Point3D.from_array(solution[:3])
+    pivot_point = Point3D.from_array(solution[3:])
+    
+    residuals = []
+    for R, t in zip(rotations, translations):
+        predicted = R.apply(tip_vector) + t
+        residuals.append((predicted - pivot_point).norm() ** 2)
+    
+    rms_error = math.sqrt(sum(residuals) / len(residuals))
+    return tip_vector, pivot_point, rms_error
 
 
 def em_pivot_calibration(empivot_data: EMPivotData) -> PivotCalibrationResult:
@@ -58,12 +103,8 @@ def em_pivot_calibration(empivot_data: EMPivotData) -> PivotCalibrationResult:
     if empivot_data.N_frames < 3:
         raise ValueError("Need at least 3 frames for pivot calibration")
     
-    # Set up the linear system: A * pivot = b
-    # For each frame i: (I - R_i) * P = t_i
-    # Where R_i and t_i are computed from the registration between G and D points
-    
-    A_rows = []
-    b_rows = []
+    rotations: List[Rotation3D] = []
+    translations: List[Point3D] = []
     
     for frame_idx in range(empivot_data.N_frames):
         # Get G points (reference) and D readings (measured) for this frame
@@ -80,36 +121,15 @@ def em_pivot_calibration(empivot_data: EMPivotData) -> PivotCalibrationResult:
             print(f"Warning: Registration failed for frame {frame_idx}")
             continue
         
-        # Extract rotation matrix R and translation vector t
-        R = registration_result.rotation.matrix
-        t = registration_result.translation.to_array()
-        
-        # Add constraint: (I - R) * P = t
-        # This becomes: (I - R) * P = t
-        constraint_matrix = np.eye(3) - R
-        A_rows.append(constraint_matrix)
-        b_rows.append(t)
+        rotations.append(registration_result.rotation)
+        translations.append(registration_result.translation)
     
-    if len(A_rows) == 0:
+    if len(rotations) < 3:
         raise ValueError("No valid frames for pivot calibration")
     
-    # Solve the overdetermined system A * pivot = b
-    A = np.vstack(A_rows)
-    b = np.hstack(b_rows)
-    
-    # Solve using least squares
     try:
-        pivot_array, residuals, rank, s = np.linalg.lstsq(A, b, rcond=None)
-        pivot_point = Point3D.from_array(pivot_array)
-        
-        # Compute error
-        if len(residuals) > 0:
-            error = np.sqrt(residuals[0] / len(A_rows))
-        else:
-            error = 0.0
-        
-        return PivotCalibrationResult(pivot_point, error, True)
-        
+        tip_vector, pivot_point, rms_error = _solve_pivot_from_frames(rotations, translations)
+        return PivotCalibrationResult(pivot_point, rms_error, True, tip_vector)
     except np.linalg.LinAlgError:
         # Fallback: use centroid of all D points as pivot
         all_d_points = []
@@ -117,7 +137,7 @@ def em_pivot_calibration(empivot_data: EMPivotData) -> PivotCalibrationResult:
             all_d_points.extend(frame_d)
         
         pivot_point = compute_centroid(all_d_points)
-        return PivotCalibrationResult(pivot_point, float('inf'), False)
+        return PivotCalibrationResult(pivot_point, float('inf'), False, None)
 
 
 def opt_pivot_calibration(optpivot_data: OptPivotData, calbody_data) -> PivotCalibrationResult:
@@ -148,14 +168,8 @@ def opt_pivot_calibration(optpivot_data: OptPivotData, calbody_data) -> PivotCal
     if optpivot_data.N_frames < 3:
         raise ValueError("Need at least 3 frames for pivot calibration")
     
-    # First, we need to establish the transformation between EM and optical coordinates
-    # This requires the calibration object data and registration
-    
-    # For now, we'll use a simplified approach:
-    # Find the pivot point in optical coordinates by analyzing the H and A points
-    
-    A_rows = []
-    b_rows = []
+    rotations: List[Rotation3D] = []
+    translations: List[Point3D] = []
     
     for frame_idx in range(optpivot_data.N_frames):
         # Get H points (reference) and A readings (measured) for this frame
@@ -172,35 +186,15 @@ def opt_pivot_calibration(optpivot_data: OptPivotData, calbody_data) -> PivotCal
             print(f"Warning: Registration failed for frame {frame_idx}")
             continue
         
-        # Extract rotation matrix R and translation vector t
-        R = registration_result.rotation.matrix
-        t = registration_result.translation.to_array()
-        
-        # Add constraint: (I - R) * P = t
-        constraint_matrix = np.eye(3) - R
-        A_rows.append(constraint_matrix)
-        b_rows.append(t)
+        rotations.append(registration_result.rotation)
+        translations.append(registration_result.translation)
     
-    if len(A_rows) == 0:
+    if len(rotations) < 3:
         raise ValueError("No valid frames for pivot calibration")
     
-    # Solve the overdetermined system A * pivot = b
-    A = np.vstack(A_rows)
-    b = np.hstack(b_rows)
-    
-    # Solve using least squares
     try:
-        pivot_array, residuals, rank, s = np.linalg.lstsq(A, b, rcond=None)
-        pivot_point = Point3D.from_array(pivot_array)
-        
-        # Compute error
-        if len(residuals) > 0:
-            error = np.sqrt(residuals[0] / len(A_rows))
-        else:
-            error = 0.0
-        
-        return PivotCalibrationResult(pivot_point, error, True)
-        
+        tip_vector, pivot_point, rms_error = _solve_pivot_from_frames(rotations, translations)
+        return PivotCalibrationResult(pivot_point, rms_error, True, tip_vector)
     except np.linalg.LinAlgError:
         # Fallback: use centroid of all A points as pivot
         all_a_points = []
@@ -208,10 +202,11 @@ def opt_pivot_calibration(optpivot_data: OptPivotData, calbody_data) -> PivotCal
             all_a_points.extend(frame_a)
         
         pivot_point = compute_centroid(all_a_points)
-        return PivotCalibrationResult(pivot_point, float('inf'), False)
+        return PivotCalibrationResult(pivot_point, float('inf'), False, None)
 
 
-def compute_pivot_error(pivot_point: Point3D, rotations: List[Rotation3D], 
+def compute_pivot_error(tip_vector: Point3D, pivot_point: Point3D,
+                       rotations: List[Rotation3D], 
                        translations: List[Point3D]) -> float:
     """
     Compute the error of a pivot point given rotations and translations.
@@ -224,8 +219,8 @@ def compute_pivot_error(pivot_point: Point3D, rotations: List[Rotation3D],
     
     errors = []
     for R, t in zip(rotations, translations):
-        # Transform pivot point: P' = R * P + t
-        transformed = R.apply(pivot_point) + t
+        # Transform tip vector into tracker frame and compare to pivot point
+        transformed = R.apply(tip_vector) + t
         error = (transformed - pivot_point).norm()
         errors.append(error)
     
@@ -246,14 +241,25 @@ def validate_pivot_calibration(result: PivotCalibrationResult,
     Returns:
         Dictionary containing validation metrics
     """
-    pivot_error = compute_pivot_error(result.pivot_point, rotations, translations)
+    if result.tip_vector is None:
+        return {
+            "pivot_point": result.pivot_point,
+            "calibration_error": result.error,
+            "validation_error": float('inf'),
+            "converged": result.converged,
+            "total_frames": len(rotations),
+            "tip_vector_available": False
+        }
+    
+    pivot_error = compute_pivot_error(result.tip_vector, result.pivot_point, rotations, translations)
     
     return {
         "pivot_point": result.pivot_point,
         "calibration_error": result.error,
         "validation_error": pivot_error,
         "converged": result.converged,
-        "total_frames": len(rotations)
+        "total_frames": len(rotations),
+        "tip_vector_available": True
     }
 
 

@@ -23,20 +23,20 @@ import math
 class Point3D:
 
     def __init__(self, x: float = 0.0, y: float = 0.0, z: float = 0.0):
-        """3D point initialization that essentially says the object or self has an x,y, and z attributable to itself
+        if not all(isinstance(v, (int, float, np.floating)) for v in (x, y, z)):
+            """3D point initialization that essentially says the object or self has an x,y, and z attributable to itself
 
-        Args:
-            x (float): X-coordinate for the point.
-            y (float): Y-coordinate for the point.
-            z (float): Z-coordinate for the point.
+            Args:
+                x (float): X-coordinate for the point.
+                y (float): Y-coordinate for the point.
+                z (float): Z-coordinate for the point.
 
-        Returns:
-            None: This initializer configures the point in place.
-        """
-        self.x = x
-        self.y = y
-        self.z = z
-
+            Returns:
+                None: This initializer configures the point in place.
+            """
+            raise TypeError("Point3D coordinates must be numeric (int or float).")
+        self.x, self.y, self.z = float(x), float(y), float(z)
+    
     def __add__(self, other: 'Point3D') -> 'Point3D':
         """Function that is known to return another Point3D that adds two Point3D's together
 
@@ -80,6 +80,25 @@ class Point3D:
             Point3D: Scaled point.
         """
         return self.__mul__(scalar)
+
+    def __eq__(self, other: object) -> bool:
+        """Determine whether two points represent the same location in space.
+
+        Args:
+            other (object): Object to compare against this point.
+
+        Returns:
+            bool: ``True`` when ``other`` is a ``Point3D`` whose ``x``, ``y``,
+                and ``z`` coordinates match this point within a tolerance of
+                1e-9; ``NotImplemented`` for unsupported types.
+        """
+        if not isinstance(other, Point3D):
+            return NotImplemented
+        return (
+            math.isclose(self.x, other.x, rel_tol=1e-9, abs_tol=1e-9)
+            and math.isclose(self.y, other.y, rel_tol=1e-9, abs_tol=1e-9)
+            and math.isclose(self.z, other.z, rel_tol=1e-9, abs_tol=1e-9)
+        )
 
     def dot(self, other: 'Point3D') -> float:
         """Dot Product of two Point3D's
@@ -153,6 +172,8 @@ class Point3D:
         Returns:
             Point3D: Point constructed from the array values.
         """
+        if len(arr) != 3:
+            raise ValueError("Array must have exactly 3 elements")
         return cls(arr[0], arr[1], arr[2])
     
     def __repr__(self) -> str:
@@ -179,6 +200,11 @@ class Rotation3D:
         """
         if matrix is None:
             self.matrix = np.eye(3) # Initializes as identity matrix if matrix not given
+        if matrix is not None:
+            if matrix.shape != (3, 3):
+                raise ValueError("Rotation matrix must be 3x3.")
+            if not np.allclose(np.dot(matrix.T, matrix), np.eye(3), atol=1e-6):
+                raise ValueError("Rotation matrix must be orthonormal.")
         else:
             self.matrix = matrix.copy()
     
@@ -193,6 +219,8 @@ class Rotation3D:
         Returns:
             Rotation3D: Rotation constructed from the axis-angle representation.
         """
+        if axis.norm() < 1e-12:
+            raise ValueError("Invalid axis: zero-length vector for axis-angle rotation.")
         axis = axis.normalize()
         cos_angle = math.cos(angle)
         sin_angle = math.sin(angle)
@@ -229,7 +257,10 @@ class Rotation3D:
         if order == 'xyz':
             R = np.dot(Rz, np.dot(Ry, Rx))
         elif order == 'zyz':
-            R = np.dot(Rz, np.dot(Ry, Rz))
+            Rz1 = cls._rotation_z(alpha)
+            Ry = cls._rotation_y(beta)
+            Rz2 = cls._rotation_z(gamma)
+            R = Rz2 @ (Ry @ Rz1)
         else:
             raise ValueError(f"Unsupported Euler angle order: {order}")
         
@@ -250,8 +281,10 @@ class Rotation3D:
         """
         # Normalize quaternion
         norm = math.sqrt(q0**2 + q1**2 + q2**2 + q3**2)
+        if norm < 1e-12:
+            raise ValueError("Invalid quaternion: zero or near-zero norm.")
         q0, q1, q2, q3 = q0/norm, q1/norm, q2/norm, q3/norm
-        
+                
         # Convert to rotation matrix
         R = np.array([
             [q0**2 + q1**2 - q2**2 - q3**2, 2*(q1*q2 - q0*q3), 2*(q1*q3 + q0*q2)],
@@ -376,13 +409,37 @@ class Rotation3D:
             # Identity rotation
             return Point3D(1, 0, 0), 0.0
         
-        # Extract axis
-        axis = Point3D(
+        # Extract axis using numerically stable approach
+        axis_vector = Point3D(
             self.matrix[2, 1] - self.matrix[1, 2],
             self.matrix[0, 2] - self.matrix[2, 0],
             self.matrix[1, 0] - self.matrix[0, 1]
-        ).normalize()
-        
+        )
+        if axis_vector.norm() < 1e-6:
+            # Handle the 180-degree rotation case where off-diagonal differences vanish
+            R = self.matrix
+            axis_components = [
+                math.sqrt(max(0.0, (R[0, 0] + 1) / 2)),
+                math.sqrt(max(0.0, (R[1, 1] + 1) / 2)),
+                math.sqrt(max(0.0, (R[2, 2] + 1) / 2)),
+            ]
+
+            # Determine signs using off-diagonal elements
+            if axis_components[0] >= axis_components[1] and axis_components[0] >= axis_components[2] and axis_components[0] > 1e-6:
+                # Use the dominant diagonal component to infer the axis direction
+                axis_components[1] = math.copysign(axis_components[1], R[0, 1])
+                axis_components[2] = math.copysign(axis_components[2], R[0, 2])
+            elif axis_components[1] >= axis_components[0] and axis_components[1] >= axis_components[2] and axis_components[1] > 1e-6:
+                # Same idea, but seeded from the Y-axis component
+                axis_components[0] = math.copysign(axis_components[0], R[1, 0])
+                axis_components[2] = math.copysign(axis_components[2], R[1, 2])
+            elif axis_components[2] > 1e-6:
+                # Otherwise fall back to the Z-axis component
+                axis_components[0] = math.copysign(axis_components[0], R[2, 0])
+                axis_components[1] = math.copysign(axis_components[1], R[2, 1])
+            axis_vector = Point3D(*axis_components)
+
+        axis = axis_vector.normalize()
         return axis, angle
     
     def __repr__(self) -> str:

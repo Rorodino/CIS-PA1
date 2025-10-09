@@ -149,10 +149,21 @@ def compute_c_expected(calbody_data: CalibrationData,
             print(f"Warning: No Fd frame for frame {frame_idx}, using identity")
             fd_frame = Frame3D()
         
+        if frame_idx < len(fa_frames):
+            fa_frame = fa_frames[frame_idx]
+        else:
+            print(f"Warning: No Fa frame for frame {frame_idx}, using identity")
+            fa_frame = Frame3D()
+        
+        # Transformation from optical tracker to EM tracker for this frame
+        optical_to_em = fd_frame.compose(fa_frame.inverse())
+        
         # Transform C points using Fd frame
         frame_c_expected = []
         for c_point in C_points:
-            transformed_c = fd_frame.apply(c_point)
+            # Convert calibration point to optical tracker, then to EM tracker
+            optical_point = fa_frame.apply(c_point)
+            transformed_c = optical_to_em.apply(optical_point)
             frame_c_expected.append(transformed_c)
         
         c_expected.append(frame_c_expected)
