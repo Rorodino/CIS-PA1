@@ -13,15 +13,15 @@ import tempfile
 import os
 from pathlib import Path
 
-from src.cis_math import Point3D, Rotation3D, Frame3D, compute_centroid
-from src.icp_algorithm import icp_algorithm, icp_with_known_correspondences, ICPResult
-from src.data_readers import (
+from programs.cis_math import Point3D, Rotation3D, Frame3D, compute_centroid
+from programs.icp_algorithm import icp_algorithm, icp_with_known_correspondences, ICPResult
+from programs.data_readers import (
     read_calbody_file, read_calreadings_file, 
     read_empivot_file, read_optpivot_file,
     CalibrationData, CalibrationReadings, EMPivotData, OptPivotData
 )
-from src.pivot_calibration import em_pivot_calibration, opt_pivot_calibration
-from src.distortion_calibration import distortion_calibration, compute_fa_frame, compute_fd_frame
+from programs.pivot_calibration import em_pivot_calibration, opt_pivot_calibration
+from programs.distortion_calibration import distortion_calibration, compute_fa_frame, compute_fd_frame
 
 
 class TestCISMath(unittest.TestCase):

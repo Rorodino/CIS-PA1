@@ -20,6 +20,24 @@ Source Files:
 - pa1_main.py: Main execution script with command-line interface
 - test_cis_pa1.py: Comprehensive test suite
 
+cis-pa1/
+├── pa1.py                 # Main executable script (matches CISPA format)
+├── programs/             # Core algorithm modules
+│   ├── __init__.py       # Package initialization
+│   ├── cis_math.py       # 3D mathematical operations
+│   ├── icp_algorithm.py  # ICP registration algorithm
+│   ├── data_readers.py   # Data file parsing
+│   ├── pivot_calibration.py # Pivot calibration methods
+│   ├── distortion_calibration.py # Distortion calibration
+│   └── output_writer.py  # Output file generation
+├── tests/                # Unit tests
+│   └── test_cis_pa1.py
+├── output/              # Generated output files
+├── logging/             # Log files
+├── setup.py             # Package setup
+├── environment.yml      # Conda environment
+├── requirements.txt     # Python dependencies
+└── README.md           # Documentation
 
 Usage:
 
