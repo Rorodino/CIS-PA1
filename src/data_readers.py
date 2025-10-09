@@ -1,8 +1,8 @@
 """
 CIS PA1 - Data File Readers
-Utility functions for reading and parsing CIS PA1 data files
+Authors: Rohit Satisha and Sahana Raja
 
-reads various data file formats:
+Reads various data file formats:
 - calbody.txt: calibration object geometry
 - calreadings.txt: EM tracker readings
 - empivot.txt: EM pivot data
@@ -12,16 +12,16 @@ reads various data file formats:
 import numpy as np
 from typing import List, Tuple, Dict, Any
 from pathlib import Path
-from cis_math import Point3D
+from .cis_math import Point3D
 
 
 class CalibrationData:
-    """calibration data"""
+    """Calibration object data"""
     
     def __init__(self, d_points: List[Point3D], a_points: List[Point3D], c_points: List[Point3D]):
-        self.d_points = d_points  # EM markers in EM tracker frame
-        self.a_points = a_points   # Optical markers in optical tracker frame  
-        self.c_points = c_points  # EM markers in calibration object frame
+        self.d_points = d_points  # EM markers
+        self.a_points = a_points   # Optical markers  
+        self.c_points = c_points  # EM markers in calib object
         self.Nd = len(d_points)
         self.NA = len(a_points)
         self.Nc = len(c_points)
@@ -279,29 +279,29 @@ def write_transformation_file(filepath: str, frame, header: str = ""):
             f.write(f"{row[0]:8.2f}, {row[1]:8.2f}, {row[2]:8.2f}, {row[3]:8.2f}\n")
 
 
-# tested this earlier
+# Test the data readers
 if __name__ == "__main__":
-    # tried with sample data
+    # Tested with sample data
     data_dir = "/Users/sahana/Downloads/PA 1 Student Data"
     
     try:
-        # tested calbody
+        # Tested calbody reader
         calbody = read_calbody_file(f"{data_dir}/pa1-debug-a-calbody.txt")
         print(f"Calibration data: {calbody}")
         print(f"D points: {len(calbody.d_points)}")
         print(f"A points: {len(calbody.a_points)}")
         print(f"C points: {len(calbody.c_points)}")
         
-        # tested calreadings
+        # Tested calreadings reader
         calreadings = read_calreadings_file(f"{data_dir}/pa1-debug-a-calreadings.txt")
         print(f"\nCalibration readings: {calreadings}")
         print(f"Number of frames: {calreadings.N_frames}")
         
-        # tested empivot
+        # Tested empivot reader
         empivot = read_empivot_file(f"{data_dir}/pa1-debug-a-empivot.txt")
         print(f"\nEM pivot data: {empivot}")
         
-        # tested optpivot
+        # Tested optpivot reader
         optpivot = read_optpivot_file(f"{data_dir}/pa1-debug-a-optpivot.txt")
         print(f"\nOpt pivot data: {optpivot}")
         

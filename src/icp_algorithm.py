@@ -1,22 +1,15 @@
 """
 CIS PA1 - ICP Algorithm
-CIS PA1 - Iterated Closest Point (ICP) Algorithm / 3D Point Set Registration Algorithm
+Authors: Rohit Satish and Sahana Raja
 
-This module implements the ICP algorithm for finding the optimal rotation and translation
-between two 3D point clouds.
-
-LIBRARIES USED:
-- NumPy (https://numpy.org/): For SVD computation and linear algebra operations
-  Citation: Harris, C.R., Millman, K.J., van der Walt, S.J. et al. Array programming with NumPy. Nature 585, 357–362 (2020). https://doi.org/10.1038/s41586-020-2649-2
-
-ALGORITHM REFERENCE:
-- Besl, P.J. & McKay, N.D. (1992). A method for registration of 3-D shapes. IEEE Transactions on Pattern Analysis and Machine Intelligence, 14(2), 239-256.
-
+ICP algorithm for 3D point set registration.
+Uses NumPy for SVD and linear algebra.
+Based on Besl & McKay 1992 paper.
 """
 
 import numpy as np
 from typing import List, Tuple, Optional
-from cis_math import Point3D, Rotation3D, Frame3D, compute_centroid, compute_covariance_matrix
+from .cis_math import Point3D, Rotation3D, Frame3D, compute_centroid, compute_covariance_matrix
 import math
 
 
@@ -270,7 +263,7 @@ if __name__ == "__main__":
         Point3D(0, 0, 1)
     ]
     
-    # made target points
+    # Created target points by applying a known transformation
     test_rotation = Rotation3D.from_axis_angle(Point3D(0, 0, 1), math.pi/4)  # 45° rotation
     test_translation = Point3D(1, 1, 1)
     
@@ -282,14 +275,14 @@ if __name__ == "__main__":
     print("Source points:", source_points)
     print("Target points:", target_points)
     
-    # ran icp
+    # Ran ICP algorithm
     result = icp_algorithm(source_points, target_points)
     print(f"\nICP Result: {result}")
     
-    # checked it
+    # Validated result
     validation = validate_icp_result(result, source_points, target_points)
     print(f"Validation: {validation}")
     
-    # tried with known stuff
+    # Tested with known correspondences
     result_known = icp_with_known_correspondences(source_points, target_points)
     print(f"\nICP with known correspondences: {result_known}")

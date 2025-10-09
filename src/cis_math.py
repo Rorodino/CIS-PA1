@@ -90,79 +90,37 @@ class Point3D:
         )
 
     def norm(self) -> float:
-        """Euclidean norm (magnitude) of the vector
-
-        Args:
-            None: This method uses the point's own coordinates.
-
-        Returns:
-            float: Euclidean norm of the point vector.
-        """
+        """Calculate the Euclidean norm of the point"""
         return math.sqrt(self.x**2 + self.y**2 + self.z**2)
 
     def normalize(self) -> 'Point3D':
-        """Returns normalized version of the vector which means the final vector is a unit vector
-
-        Args:
-            None: This method uses the point's own coordinates.
-
-        Returns:
-            Point3D: Unit vector pointing in the same direction.
-        """
+        """Returns normalized version of the vector"""
         n = self.norm()
         if n == 0:
             return Point3D(0, 0, 0)
         return Point3D(self.x/n, self.y/n, self.z/n)
     
     def to_array(self) -> np.ndarray:
-        """Converts a Point3D to numpy array
-
-        Args:
-            None: This method uses the point's own coordinates.
-
-        Returns:
-            np.ndarray: Array representation of the point.
-        """
+        """Converts a Point3D to numpy array"""
         return np.array([self.x, self.y, self.z])
     
     @classmethod
     def from_array(cls, arr: np.ndarray) -> 'Point3D':
-        """Create Point3D from numpy array.
-
-        Args:
-            arr (np.ndarray): Array containing three coordinates.
-
-        Returns:
-            Point3D: Point constructed from the array values.
-        """
+        """Create Point3D from numpy array"""
         if len(arr) != 3:
             raise ValueError("Array must have exactly 3 elements")
         return cls(arr[0], arr[1], arr[2])
     
     def __repr__(self) -> str:
-        """toString method
-
-        Args:
-            None: This method uses the point's own coordinates.
-
-        Returns:
-            str: String representation of the point.
-        """
+        """toString method"""
         return f"Point3D({self.x:.3f}, {self.y:.3f}, {self.z:.3f})"
 
 # 3D Rotation class - handles rotation matricies (had to fix this earlier)
 class Rotation3D:
     def __init__(self, matrix: Optional[np.ndarray] = None):
-        """Initializes the rotation matrix for the 3D rotation object.
-
-        Args:
-            matrix (Optional[np.ndarray]): Rotation matrix used to initialize the object.
-
-        Returns:
-            None: This initializer configures the rotation in place.
-        """
+        """Initialize the rotation matrix"""
         if matrix is None:
-            self.matrix = np.eye(3)  # Initializes as identity matrix if matrix not given
+            self.matrix = np.eye(3)  # identity matrix (used this before)
         else:
             candidate = np.asarray(matrix, dtype=float)
             if candidate.shape != (3, 3):
@@ -175,14 +133,7 @@ class Rotation3D:
     
     @classmethod
     def from_axis_angle(cls, axis: Point3D, angle: float) -> 'Rotation3D':
-        """Create rotation from axis-angle representation using Rodrigues' formula.
-
-        Args:
-            axis (Point3D): Rotation axis.
-            angle (float): Rotation angle in radians.
-
-        Returns:
-            Rotation3D: Rotation constructed from the axis-angle representation.
+        """Create rotation from axis-angle using Rodrigues formula
         """
         if axis.norm() < 1e-12:
             raise ValueError("Invalid axis: zero-length vector for axis-angle rotation.")

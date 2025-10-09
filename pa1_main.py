@@ -1,8 +1,8 @@
 """
 CIS PA1 - Main Execution Script
-Main file serving as interface for the CIS PA1 project
+Main file as the interface for the CIS PA1 project
 
-This script provides access to the solutions for problems 4a, 4b, 4c, 4d, 5, and 6:
+This shows our solutions for problems 4a, 4b, 4c, 4d, 5, and 6:
 - 4a: Compute Fa frame transformations
 - 4b: Compute Fd frame transformations  
 - 4c: Compute expected C values (distortion calibration)
@@ -12,9 +12,11 @@ This script provides access to the solutions for problems 4a, 4b, 4c, 4d, 5, and
 
 Authors: Rohit Satisha and Sahana Raja
 
-main file for CIS PA1 execution.
-handles problems 4a, 4b, 4c, 4d, 5, and 6.
-uses Click for CLI interface.
+LIBRARIES USED:
+- Click (https://click.palletsprojects.com/): For command-line interface
+  Citation: Pallet Projects. Click: Python composable command line interface toolkit. https://click.palletsprojects.com/
+- NumPy (https://numpy.org/): For numerical computations
+  Citation: Harris, C.R., Millman, K.J., van der Walt, S.J. et al. Array programming with NumPy. Nature 585, 357–362 (2020). https://doi.org/10.1038/s41586-020-2649-2
 """
 
 import click
@@ -22,19 +24,19 @@ import logging
 from pathlib import Path
 import numpy as np
 
-from data_readers import (
+from src.data_readers import (
     read_calbody_file, read_calreadings_file, 
     read_empivot_file, read_optpivot_file
 )
-from output_writer import (
+from src.output_writer import (
     write_output1_file, write_transformation_matrix_file, 
     write_pivot_point_file, write_c_expected_file
 )
-from distortion_calibration import (
+from src.distortion_calibration import (
     compute_fa_frame, compute_fd_frame, distortion_calibration,
     write_c_expected_file, validate_distortion_calibration
 )
-from pivot_calibration import em_pivot_calibration, opt_pivot_calibration
+from src.pivot_calibration import em_pivot_calibration, opt_pivot_calibration
 
 
 # Set up logging

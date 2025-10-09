@@ -1,28 +1,21 @@
 """
-CIS PA1 - Pivot Calibration Methods
-Implementation of pivot calibration for EM and optical tracking systems
-
-This  implements the pivot calibration algorithms for both EM and optical
-tracking systems, which are used to determine the position of a pivot point
-relative to the tracking markers.
-
+CIS PA1 - Pivot Calibration
 Authors: Rohit Satisha and Sahana Raja
 
-LIBRARIES USED:
-- NumPy (https://numpy.org/): For least-squares solving and linear algebra operations
-  Citation: Harris, C.R., Millman, K.J., van der Walt, S.J. et al. Array programming with NumPy. Nature 585, 357–362 (2020). https://doi.org/10.1038/s41586-020-2649-2
+Pivot calibration for EM and optical tracking systems.
+Uses NumPy for least-squares solving.
 """
 
 import numpy as np
 import math
 from typing import List, Tuple, Optional
-from cis_math import Point3D, Rotation3D, Frame3D, compute_centroid
-from icp_algorithm import icp_with_known_correspondences
-from data_readers import EMPivotData, OptPivotData
+from .cis_math import Point3D, Rotation3D, Frame3D, compute_centroid
+from .icp_algorithm import icp_with_known_correspondences
+from .data_readers import EMPivotData, OptPivotData
 
 
 class PivotCalibrationResult:
-    """pivot result"""
+    """Pivot calibration result"""
     
     def __init__(self, pivot_point: Point3D, error: float, converged: bool,
                  tip_vector: Optional[Point3D] = None):
@@ -263,11 +256,11 @@ def validate_pivot_calibration(result: PivotCalibrationResult,
     }
 
 
-# tested this
+# Tested the implementation earlier
 if __name__ == "__main__":
-    from data_readers import read_empivot_file, read_optpivot_file, read_calbody_file
+    from .data_readers import read_empivot_file, read_optpivot_file, read_calbody_file
     
-    # Test EM pivot calibration
+    # Tested EM pivot calibration
     try:
         data_dir = "/Users/sahana/Downloads/PA 1 Student Data"
         empivot_data = read_empivot_file(f"{data_dir}/pa1-debug-a-empivot.txt")
@@ -279,7 +272,7 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Error in EM pivot calibration: {e}")
     
-        # tried optical pivot
+        # Tested optical pivot calibration
     try:
         calbody_data = read_calbody_file(f"{data_dir}/pa1-debug-a-calbody.txt")
         optpivot_data = read_optpivot_file(f"{data_dir}/pa1-debug-a-optpivot.txt")

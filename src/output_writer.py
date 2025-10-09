@@ -1,13 +1,13 @@
 """
 CIS PA1 - Output File Writer
+Authors: Rohit Satisha and Sahana Raja
 
-writes output files in required format.
-handles NAME-OUTPUT-1.TXT format.
+Writes output files in required format.
 """
 
 from typing import List
 from pathlib import Path
-from cis_math import Point3D
+from .cis_math import Point3D
 
 
 def write_output1_file(filepath: str, 
