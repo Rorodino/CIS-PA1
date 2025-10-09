@@ -4,7 +4,7 @@ Comprehensive test suite for CIS PA1 implementation
 
 This module contains unit tests for all major components of the CIS PA1 implementation.
 
-Authors: Rohit Satisha and Sahana Raja
+Authors: Rohit Satish and Sahana Raja
 """
 
 import unittest
