@@ -21,9 +21,9 @@ Source Files:
 - test_cis_pa1.py: Comprehensive test suite
 
 
+Usage:
 
-USAGE INSTRUCTIONS
-The main executable is pa1_main.py. It provides several modes of operation:
+The main executable is pa1_main.py. 
 
 1. Fa Frame Computation:
    python3 pa1_main.py --name pa1-debug-a-calbody --name_2 pa1-debug-a-calreadings --output_file Fa_a_registration
